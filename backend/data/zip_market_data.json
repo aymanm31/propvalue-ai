@@ -1,0 +1,62 @@
+{
+  "20001": {
+    "zip_code": "20001",
+    "city": "Washington",
+    "state": "DC",
+    "median_sale_price": 625000,
+    "median_price_per_sqft": 512,
+    "homes_sold": 38,
+    "days_on_market": 12,
+    "period": "2026-04-30"
+  },
+  "30301": {
+    "zip_code": "30301",
+    "city": "Atlanta",
+    "state": "GA",
+    "median_sale_price": 285000,
+    "median_price_per_sqft": 182,
+    "homes_sold": 45,
+    "days_on_market": 18,
+    "period": "2026-04-30"
+  },
+  "77001": {
+    "zip_code": "77001",
+    "city": "Houston",
+    "state": "TX",
+    "median_sale_price": 198000,
+    "median_price_per_sqft": 134,
+    "homes_sold": 62,
+    "days_on_market": 22,
+    "period": "2026-04-30"
+  },
+  "90001": {
+    "zip_code": "90001",
+    "city": "Los Angeles",
+    "state": "CA",
+    "median_sale_price": 742000,
+    "median_price_per_sqft": 618,
+    "homes_sold": 29,
+    "days_on_market": 9,
+    "period": "2026-04-30"
+  },
+  "60601": {
+    "zip_code": "60601",
+    "city": "Chicago",
+    "state": "IL",
+    "median_sale_price": 334000,
+    "median_price_per_sqft": 248,
+    "homes_sold": 41,
+    "days_on_market": 15,
+    "period": "2026-04-30"
+  },
+  "22030": {
+    "zip_code": "22030",
+    "city": "Fairfax",
+    "state": "VA",
+    "median_sale_price": 548000,
+    "median_price_per_sqft": 323,
+    "homes_sold": 34,
+    "days_on_market": 10,
+    "period": "2026-04-30"
+  }
+}
