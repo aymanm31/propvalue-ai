@@ -1,33 +1,44 @@
 "use client";
 
 import { useState } from "react";
-
-interface FormData {
-  zip_code: string;
-  square_footage: string;
-  purchase_price: string;
-  monthly_taxes: string;
-  monthly_insurance: string;
-  rehab_duration_months: string;
-}
+import { FormData } from "../lib/api";
 
 interface AnalysisFormProps {
   onSubmit: (formData: FormData, images: File[]) => void;
   isLoading: boolean;
 }
 
+const EMPTY_FORM: FormData = {
+  zip_code: "",
+  square_footage: "",
+  purchase_price: "",
+  monthly_taxes: "",
+  monthly_insurance: "",
+  rehab_duration_months: "",
+};
+
+const FIELDS: { name: keyof FormData; label: string; placeholder: string }[] = [
+  { name: "zip_code", label: "ZIP code", placeholder: "22030" },
+  { name: "square_footage", label: "Square footage", placeholder: "1800" },
+  { name: "purchase_price", label: "Asking price ($)", placeholder: "320000" },
+  { name: "monthly_taxes", label: "Monthly taxes ($)", placeholder: "400" },
+  {
+    name: "monthly_insurance",
+    label: "Monthly insurance ($)",
+    placeholder: "150",
+  },
+  {
+    name: "rehab_duration_months",
+    label: "Estimated rehab duration (months)",
+    placeholder: "4",
+  },
+];
+
 export default function AnalysisForm({
   onSubmit,
   isLoading,
 }: AnalysisFormProps) {
-  const [formData, setFormData] = useState<FormData>({
-    zip_code: "",
-    square_footage: "",
-    purchase_price: "",
-    monthly_taxes: "",
-    monthly_insurance: "",
-    rehab_duration_months: "",
-  });
+  const [formData, setFormData] = useState<FormData>(EMPTY_FORM);
   const [images, setImages] = useState<File[]>([]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -45,30 +56,9 @@ export default function AnalysisForm({
     onSubmit(formData, images);
   };
 
-  const fields = [
-    { name: "zip_code", label: "ZIP code", placeholder: "22030" },
-    { name: "square_footage", label: "Square footage", placeholder: "1800" },
-    {
-      name: "purchase_price",
-      label: "Asking price ($)",
-      placeholder: "320000",
-    },
-    { name: "monthly_taxes", label: "Monthly taxes ($)", placeholder: "400" },
-    {
-      name: "monthly_insurance",
-      label: "Monthly insurance ($)",
-      placeholder: "150",
-    },
-    {
-      name: "rehab_duration_months",
-      label: "Estimated rehab duration (months)",
-      placeholder: "4",
-    },
-  ];
-
   return (
     <div className="space-y-5">
-      {fields.map((field) => (
+      {FIELDS.map((field) => (
         <div key={field.name}>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             {field.label}
@@ -77,7 +67,7 @@ export default function AnalysisForm({
             type="text"
             name={field.name}
             placeholder={field.placeholder}
-            value={formData[field.name as keyof FormData]}
+            value={formData[field.name]}
             onChange={handleChange}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />

@@ -1,39 +1,4 @@
-interface RoiAnalysis {
-  roi_percentage: number;
-  verdict: string;
-  net_profit: number;
-  total_investment: number;
-  seventy_percent_rule_max_purchase: number;
-  passes_70_percent_rule: boolean;
-}
-
-interface LineItem {
-  room_type: string;
-  condition_grade: string;
-  midpoint_estimate: number;
-}
-
-interface RehabEstimate {
-  line_items: LineItem[];
-  recommended_budget: number;
-}
-
-interface MarketData {
-  estimated_arv: number;
-  median_price_per_sqft: number;
-}
-
-interface VisionAnalysis {
-  overall_condition_grade: string;
-  images_analyzed: number;
-}
-
-interface AnalysisResults {
-  roi_analysis: RoiAnalysis;
-  rehab_estimate: RehabEstimate;
-  market_data: MarketData;
-  vision_analysis: VisionAnalysis;
-}
+import { AnalysisResults, LineItem } from "../lib/api";
 
 interface ResultsDisplayProps {
   results: AnalysisResults | null;
@@ -148,7 +113,9 @@ export default function ResultsDisplay({ results }: ResultsDisplayProps) {
           <div>
             <p className="text-gray-500">Passes 70% rule</p>
             <p
-              className={`font-semibold ${roi.passes_70_percent_rule ? "text-green-600" : "text-red-600"}`}
+              className={`font-semibold ${
+                roi.passes_70_percent_rule ? "text-green-600" : "text-red-600"
+              }`}
             >
               {roi.passes_70_percent_rule ? "Yes" : "No"}
             </p>

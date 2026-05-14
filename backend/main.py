@@ -5,8 +5,15 @@ from services.market_data import get_market_data_by_zip, estimate_arv
 from services.vision_analyzer import analyze_image_from_base64, analyze_multiple_images
 from services.cost_estimator import estimate_total_rehab_cost
 from services.property_analyzer import run_full_analysis
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="PropValue AI", version="0.1.0")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
 
 class ROIRequest(BaseModel):
     purchase_price: float
