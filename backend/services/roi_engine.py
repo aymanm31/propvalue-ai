@@ -69,7 +69,8 @@ def calculate_roi(input: ROIInput) -> ROIResult:
         "net_profit": round(net_profit, 2),
         "roi_percentage": round(roi_percentage, 2),
         "seventy_percent_rule_max_purchase": round(seventy_percent_max, 2),
-        "passes_70_percent_rule": input.purchase_price <= seventy_percent_max
+        "passes_70_percent_rule": input.purchase_price <= seventy_percent_max,
+        "verdict": verdict
     }
 
     return ROIResult(
