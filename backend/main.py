@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from services.roi_engine import ROIInput, calculate_roi
 from services.market_data import get_market_data_by_zip, estimate_arv
 from services.vision_analyzer import analyze_image_from_base64, analyze_multiple_images
+from services.cost_estimator import estimate_total_rehab_cost
 
 app = FastAPI(title="PropValue AI", version="0.1.0")
 
@@ -53,3 +54,10 @@ class ImageAnalysisRequest(BaseModel):
 @app.post("/api/analyze/photos")
 def analyze_photos(request: ImageAnalysisRequest):
     return analyze_multiple_images(request.images)
+
+class CostEstimateRequest(BaseModel):
+    room_analyses: list[dict]
+
+@app.post("/api/estimate/rehab-cost")
+def rehab_cost_estimate(request: CostEstimateRequest):
+    return estimate_total_rehab_cost(request.room_analyses)
