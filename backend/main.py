@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from services.roi_engine import ROIInput, calculate_roi
 from services.market_data import get_market_data_by_zip, estimate_arv
+from services.vision_analyzer import analyze_image_from_base64, analyze_multiple_images
 
 app = FastAPI(title="PropValue AI", version="0.1.0")
 
@@ -45,3 +46,10 @@ def market_data(zip_code: str):
 @app.post("/api/market/estimate-arv")
 def arv_estimate(request: ARVRequest):
     return estimate_arv(request.zip_code, request.square_footage)
+
+class ImageAnalysisRequest(BaseModel):
+    images: list[dict]
+
+@app.post("/api/analyze/photos")
+def analyze_photos(request: ImageAnalysisRequest):
+    return analyze_multiple_images(request.images)
