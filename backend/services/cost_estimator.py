@@ -1,3 +1,8 @@
+import os
+import json
+
+DATA_PATH = os.path.join(os.path.dirname(__file__), "../data/labor_multipliers.json")
+
 REHAB_COSTS = {
     "kitchen": {
         "C1": {"low": 0, "high": 0},
@@ -65,18 +70,36 @@ REHAB_COSTS = {
     }
 }
 
-def estimate_room_cost(room_type: str, condition_grade: str) -> dict:
+def get_labor_multiplier_value(zip_code: str) -> float:
+    with open(DATA_PATH, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    if zip_code in data["zip_overrides"]:
+        return data["zip_overrides"][zip_code]
+    return data["default"]
+
+def estimate_room_cost(
+    room_type: str,
+    condition_grade: str,
+    labor_multiplier: float = 1.0
+) -> dict:
     room = REHAB_COSTS.get(room_type, REHAB_COSTS["other"])
     costs = room.get(condition_grade, {"low": 0, "high": 0})
+    low = round(costs["low"] * labor_multiplier, 2)
+    high = round(costs["high"] * labor_multiplier, 2)
     return {
         "room_type": room_type,
         "condition_grade": condition_grade,
-        "low_estimate": costs["low"],
-        "high_estimate": costs["high"],
-        "midpoint_estimate": round((costs["low"] + costs["high"]) / 2, 2)
+        "labor_multiplier": labor_multiplier,
+        "low_estimate": low,
+        "high_estimate": high,
+        "midpoint_estimate": round((low + high) / 2, 2)
     }
 
-def estimate_total_rehab_cost(room_analyses: list[dict]) -> dict:
+def estimate_total_rehab_cost(
+    room_analyses: list[dict],
+    zip_code: str = ""
+) -> dict:
+    labor_multiplier = get_labor_multiplier_value(zip_code) if zip_code else 1.0
     line_items = []
     total_low = 0
     total_high = 0
@@ -87,7 +110,7 @@ def estimate_total_rehab_cost(room_analyses: list[dict]) -> dict:
 
         room_type = room.get("room_type", "other")
         grade = room.get("condition_grade", "C3")
-        estimate = estimate_room_cost(room_type, grade)
+        estimate = estimate_room_cost(room_type, grade, labor_multiplier)
 
         line_items.append({
             "room_type": room_type,
@@ -109,8 +132,9 @@ def estimate_total_rehab_cost(room_analyses: list[dict]) -> dict:
 
     return {
         "line_items": line_items,
-        "subtotal_low": total_low,
-        "subtotal_high": total_high,
+        "labor_multiplier": labor_multiplier,
+        "subtotal_low": round(total_low, 2),
+        "subtotal_high": round(total_high, 2),
         "contingency_percentage": contingency_pct * 100,
         "total_low": total_low_with_contingency,
         "total_high": total_high_with_contingency,

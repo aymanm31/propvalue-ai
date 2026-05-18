@@ -1,10 +1,20 @@
-import { AnalysisResults, LineItem } from "../lib/api";
+"use client";
+
+import { useState } from "react";
+import {
+  AnalysisResults,
+  LineItem,
+  OverImprovementResult,
+  downloadReport,
+} from "../lib/api";
 
 interface ResultsDisplayProps {
   results: AnalysisResults | null;
 }
 
 export default function ResultsDisplay({ results }: ResultsDisplayProps) {
+  const [isDownloading, setIsDownloading] = useState(false);
+
   if (!results) return null;
 
   const roi = results.roi_analysis;
@@ -21,6 +31,28 @@ export default function ResultsDisplay({ results }: ResultsDisplayProps) {
 
   return (
     <div className="space-y-6 mt-8">
+      <div className="flex justify-between items-center">
+        <h2 className="text-xl font-semibold text-gray-900">
+          Analysis results
+        </h2>
+        <button
+          onClick={async () => {
+            setIsDownloading(true);
+            try {
+              await downloadReport(results);
+            } catch {
+              alert("Failed to generate report. Please try again.");
+            } finally {
+              setIsDownloading(false);
+            }
+          }}
+          disabled={isDownloading}
+          className="text-sm bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+        >
+          {isDownloading ? "Generating..." : "Download PDF report"}
+        </button>
+      </div>
+
       <div className="bg-white rounded-xl border border-gray-200 p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">
           ROI summary
@@ -51,6 +83,44 @@ export default function ResultsDisplay({ results }: ResultsDisplayProps) {
         </div>
       </div>
 
+      {results.over_improvement.alert_count > 0 && (
+        <div className="bg-amber-50 rounded-xl border border-amber-200 p-6">
+          <h2 className="text-lg font-semibold text-amber-800 mb-3">
+            Over-improvement warnings
+          </h2>
+          <div className="space-y-2">
+            {results.over_improvement.alerts.map((alert: string, i: number) => (
+              <div key={i} className="flex gap-3 text-sm text-amber-700">
+                <span className="flex-shrink-0">⚠️</span>
+                <p>{alert}</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 pt-4 border-t border-amber-200 grid grid-cols-2 gap-3 text-sm">
+            <div>
+              <p className="text-amber-600">Neighborhood ceiling</p>
+              <p className="font-semibold text-amber-800">
+                $
+                {results.over_improvement.neighborhood_ceiling.toLocaleString()}
+              </p>
+            </div>
+            <div>
+              <p className="text-amber-600">ARV as % of ceiling</p>
+              <p className="font-semibold text-amber-800">
+                {results.over_improvement.arv_to_ceiling_ratio}%
+              </p>
+            </div>
+            <div>
+              <p className="text-amber-600">Recommended max rehab</p>
+              <p className="font-semibold text-amber-800">
+                $
+                {results.over_improvement.recommended_max_rehab.toLocaleString()}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="bg-white rounded-xl border border-gray-200 p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">
           Property condition
@@ -66,9 +136,13 @@ export default function ResultsDisplay({ results }: ResultsDisplayProps) {
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+        <h2 className="text-lg font-semibold text-gray-900 mb-1">
           Rehab estimate
         </h2>
+        <p className="text-xs text-gray-400 mb-4">
+          Local labor multiplier: {results.rehab_estimate.labor_multiplier}x
+          national average
+        </p>
         <div className="space-y-2">
           {rehab.line_items.map((item: LineItem, i: number) => (
             <div key={i} className="flex justify-between text-sm">
@@ -88,20 +162,47 @@ export default function ResultsDisplay({ results }: ResultsDisplayProps) {
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+        <h2 className="text-lg font-semibold text-gray-900 mb-1">
           Market data
         </h2>
+        <p className="text-xs text-gray-400 mb-4">
+          Based on {market.comps_used} comparable ZIP codes · Confidence:{" "}
+          <span
+            className={
+              market.arv_confidence === "high"
+                ? "text-green-600 font-medium"
+                : market.arv_confidence === "medium"
+                  ? "text-yellow-600 font-medium"
+                  : "text-red-600 font-medium"
+            }
+          >
+            {market.arv_confidence}
+          </span>
+        </p>
         <div className="grid grid-cols-2 gap-3 text-sm">
           <div>
             <p className="text-gray-500">Estimated ARV</p>
             <p className="font-semibold text-gray-900">
-              ${market.estimated_arv.toLocaleString()}
+              ${market.arv_estimate.toLocaleString()}
             </p>
           </div>
           <div>
-            <p className="text-gray-500">Median price/sqft</p>
+            <p className="text-gray-500">ARV range</p>
             <p className="font-semibold text-gray-900">
-              ${market.median_price_per_sqft}
+              ${market.arv_low.toLocaleString()} – $
+              {market.arv_high.toLocaleString()}
+            </p>
+          </div>
+          <div>
+            <p className="text-gray-500">Avg price / sqft</p>
+            <p className="font-semibold text-gray-900">
+              ${market.avg_price_per_sqft}
+            </p>
+          </div>
+          <div>
+            <p className="text-gray-500">Days on market</p>
+            <p className="font-semibold text-gray-900">
+              {market.primary_market.days_on_market} days
             </p>
           </div>
           <div>
@@ -113,9 +214,7 @@ export default function ResultsDisplay({ results }: ResultsDisplayProps) {
           <div>
             <p className="text-gray-500">Passes 70% rule</p>
             <p
-              className={`font-semibold ${
-                roi.passes_70_percent_rule ? "text-green-600" : "text-red-600"
-              }`}
+              className={`font-semibold ${roi.passes_70_percent_rule ? "text-green-600" : "text-red-600"}`}
             >
               {roi.passes_70_percent_rule ? "Yes" : "No"}
             </p>

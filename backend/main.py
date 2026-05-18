@@ -6,6 +6,9 @@ from services.vision_analyzer import analyze_image_from_base64, analyze_multiple
 from services.cost_estimator import estimate_total_rehab_cost
 from services.property_analyzer import run_full_analysis
 from fastapi.middleware.cors import CORSMiddleware
+from services.comp_engine import get_comp_analysis
+from fastapi.responses import Response
+from services.report_generator import generate_roi_report
 
 app = FastAPI(title="PropValue AI", version="0.1.0")
 app.add_middleware(
@@ -89,4 +92,21 @@ def full_analysis(request: FullAnalysisRequest):
         monthly_taxes=request.monthly_taxes,
         monthly_insurance=request.monthly_insurance,
         rehab_duration_months=request.rehab_duration_months
+    )
+
+class CompRequest(BaseModel):
+    zip_code: str
+    square_footage: float
+
+@app.post("/api/market/comps")
+def comp_analysis(request: CompRequest):
+    return get_comp_analysis(request.zip_code, request.square_footage)
+
+@app.post("/api/report/generate")
+def generate_report(analysis: dict):
+    pdf_bytes = generate_roi_report(analysis)
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": "attachment; filename=propvalue-report.pdf"}
     )
