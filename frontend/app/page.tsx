@@ -51,9 +51,20 @@ export default function Home() {
         )}
 
         {isLoading && (
-          <div className="mt-8 text-center text-gray-400 text-sm">
-            Analyzing photos and calculating ROI — this takes about 15
-            seconds...
+          <div className="mt-8 bg-white rounded-xl border border-gray-200 p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+              <p className="text-sm font-medium text-gray-700">
+                Analyzing your property...
+              </p>
+            </div>
+            <div className="space-y-2 text-sm text-gray-400">
+              <p>✓ Uploading photos</p>
+              <p>⟳ Running AI condition assessment</p>
+              <p>○ Calculating rehab costs</p>
+              <p>○ Pulling market comps</p>
+              <p>○ Computing ROI</p>
+            </div>
           </div>
         )}
 

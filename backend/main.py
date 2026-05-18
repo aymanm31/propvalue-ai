@@ -9,6 +9,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from services.comp_engine import get_comp_analysis
 from fastapi.responses import Response
 from services.report_generator import generate_roi_report
+from fastapi import HTTPException
+import base64
 
 app = FastAPI(title="PropValue AI", version="0.1.0")
 app.add_middleware(
@@ -82,8 +84,46 @@ class FullAnalysisRequest(BaseModel):
     monthly_insurance: float
     rehab_duration_months: int
 
+MAX_IMAGE_SIZE_MB = 4
+MAX_IMAGES = 10
+
 @app.post("/api/analyze/full")
 def full_analysis(request: FullAnalysisRequest):
+    if not request.images:
+        raise HTTPException(status_code=400, detail="At least one image is required")
+
+    if len(request.images) > MAX_IMAGES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Maximum {MAX_IMAGES} images allowed per analysis"
+        )
+
+    for i, img in enumerate(request.images):
+        try:
+            decoded = base64.b64decode(img["base64"])
+            size_mb = len(decoded) / (1024 * 1024)
+            if size_mb > MAX_IMAGE_SIZE_MB:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Image {i+1} is {size_mb:.1f}MB. Maximum size is {MAX_IMAGE_SIZE_MB}MB per image."
+                )
+        except Exception as e:
+            if isinstance(e, HTTPException):
+                raise
+            raise HTTPException(status_code=400, detail=f"Image {i+1} could not be decoded")
+
+    if not request.zip_code or len(request.zip_code) != 5 or not request.zip_code.isdigit():
+        raise HTTPException(status_code=400, detail="ZIP code must be exactly 5 digits")
+
+    if request.square_footage <= 0 or request.square_footage > 50000:
+        raise HTTPException(status_code=400, detail="Square footage must be between 1 and 50,000")
+
+    if request.purchase_price <= 0:
+        raise HTTPException(status_code=400, detail="Purchase price must be greater than 0")
+
+    if request.rehab_duration_months < 1 or request.rehab_duration_months > 60:
+        raise HTTPException(status_code=400, detail="Rehab duration must be between 1 and 60 months")
+
     return run_full_analysis(
         images=request.images,
         zip_code=request.zip_code,
